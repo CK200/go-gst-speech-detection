@@ -94,13 +94,11 @@ func createMicrophonePipeline() (*gst.Pipeline, error) {
 			}
 			defer buffer.Unmap() // Ensure buffer is unmapped after processing
 
-			speaking := buffer.Map(gst.MapRead).AsInt16LESlice() // Map buffer to int16 slice
-
-			objects.MicroPhoneChannel <- speaking // Send samples to the MicroPhoneChannel
-
 			// Get new samples and add to buffer
 			newSamples := buffer.Map(gst.MapRead).AsInt16LESlice()
 			sampleBuffer = append(sampleBuffer, newSamples...) // Append new samples to the buffer
+
+			objects.MicroPhoneChannel <- newSamples // Send samples to the MicroPhoneChannel
 
 			// Process complete windows
 			for len(sampleBuffer) >= constants.FFTWindowSize {

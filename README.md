@@ -159,11 +159,7 @@ my-go-project/
 │       └── objects.go       # Channels and pipeline references
 ├── constants/               # Constants used throughout the application
 │   └── constants.go         # Constant definitions
-├── configs/                 # Configuration files (if needed)
 ├── data/                    # Sample data (audio files, etc.)
-│   └── samples/             # Directory for sample audio files
-├── scripts/                 # Setup scripts (if needed)
-├── test/                    # Integration tests (if needed)
 ├── go.mod                   # Go module file
 └── go.sum                   # Go module checksum file
 ```
