@@ -10,6 +10,7 @@ This project is an audio processing application built using Go and GStreamer. It
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
+- [Audio Processing with FFT](#audio-processing-with-fft)
 - [Running the Application](#running-the-application)
 - [Project Structure](#project-structure)
 - [Contributing](#contributing)
@@ -34,7 +35,7 @@ This project is an audio processing application built using Go and GStreamer. It
 
    ```bash
    git clone https://github.com/CK200/go-gst-speech-detection.git
-   cd audio-processing-app
+   cd go-gst-speech-detection
    ```
 
 2. **Install Go dependencies:**
@@ -68,6 +69,64 @@ audioFilePath := "data/file_example_MP3_5MG.mp3" // Default audio file path
 
 You can also override this path by providing it as a command-line argument when running the application.
 
+
+## Audio Processing with FFT
+
+The application utilizes Fast Fourier Transform (FFT) to analyze audio signals in the frequency domain. This allows for effective speech detection and audio processing. Here’s a detailed explanation of how the application processes audio data using FFT:
+
+### Overview of FFT
+
+FFT is an efficient algorithm for computing the Discrete Fourier Transform (DFT) and its inverse. The DFT converts a sequence of time-domain samples into a sequence of frequency-domain components, allowing us to analyze the frequency content of the audio signal. This is particularly useful for applications such as speech recognition, audio analysis, and filtering.
+
+### How the Application Uses FFT
+
+1. **Audio Capture**:
+   - The application captures audio input from the microphone using GStreamer. The audio samples are streamed in real-time and sent to a designated channel for processing.
+
+2. **Windowing**:
+   - To analyze the audio signal, the application collects samples into a buffer. Once the buffer reaches a specified size (defined by `FFTWindowSize`), the application extracts a segment of audio samples for processing.
+   - A Hamming window is applied to the samples to reduce spectral leakage. This windowing function smooths the edges of the sample segment, which helps in obtaining a more accurate frequency representation.
+
+3. **FFT Calculation**:
+   - After applying the Hamming window, the application performs the FFT on the windowed samples. This transforms the time-domain samples into frequency-domain coefficients.
+   - The FFT coefficients represent the amplitude and phase of the frequency components present in the audio signal.
+
+4. **Frequency Analysis**:
+   - The application calculates the energy in specific frequency bands to detect speech. It defines a range of frequencies (from `SpeechLowFreq` to `SpeechHighFreq`) that are relevant for speech detection.
+   - The energy in these frequency bands is computed by summing the magnitudes of the FFT coefficients that fall within the defined range.
+
+5. **Speech Detection**:
+   - The application uses a dynamic threshold to determine whether speech is present. It calculates the total energy of the FFT coefficients and sets a threshold based on a percentage of this total energy.
+   - If the energy in the speech frequency band exceeds the threshold, the application detects speech and sets a flag (`SpeakingFlag`) to indicate that speech is currently being detected.
+
+6. **Continuous Processing**:
+   - The application continuously processes incoming audio samples in real-time. As new samples are captured, they are added to the buffer, and the FFT analysis is performed on each complete window of samples.
+   - This allows the application to respond to changes in the audio signal dynamically, making it suitable for real-time applications such as voice activation or speech recognition.
+
+### Example of FFT Processing Code
+
+Here’s a simplified snippet of how the FFT processing is implemented in the application:
+
+```go
+// Perform FFT on the windowed samples
+fftCoefs := fft.Coefficients(nil, window)
+
+// Calculate frequency characteristics
+binWidth := constants.SampleRate / float64(constants.FFTWindowSize)
+startBin := int(math.Floor(constants.SpeechLowFreq / binWidth))
+endBin := int(math.Ceil(constants.SpeechHighFreq / binWidth))
+
+// Calculate speech band energy
+var speechEnergy float64
+for i := startBin; i <= endBin && i < len(fftCoefs); i++ {
+    speechEnergy += cmplx.Abs(fftCoefs[i]) // Accumulate energy in the speech band
+}
+```
+
+### Conclusion
+
+By leveraging FFT, the application can effectively analyze audio signals in real-time, enabling features such as speech detection and audio processing. This approach allows for a deeper understanding of the audio content and enhances the application's capabilities in handling audio data.
+
 ## Running the Application
 
 1. **Run the application**:
@@ -85,26 +144,29 @@ You can also override this path by providing it as a command-line argument when 
 
 ## Project Structure
 
-├── cmd/ # Entry point of the application
-│ └── main.go # Main application logic
-├── internal/ # Core logic of the application
-│ ├── processinput/ # Audio input processing
-│ │ ├── microphone.go # Microphone input handling
-│ │ └── tone.go # Tone generation handling
-│ └── processoutput/ # Audio output processing
-│ └── output.go # Output handling logic
-├── pkg/ # Shared packages
-│ └── objects/ # Shared objects and channels
-│ └── objects.go # Channels and pipeline references
-├── constants/ # Constants used throughout the application
-│ └── constants.go # Constant definitions
-├── configs/ # Configuration files (if needed)
-├── data/ # Sample data (audio files, etc.)
-│ └── samples/ # Directory for sample audio files
-├── scripts/ # Setup scripts (if needed)
-├── test/ # Integration tests (if needed)
-├── go.mod # Go module file
-└── go.sum # Go module checksum file
+```
+my-go-project/
+├── cmd/                     # Entry point of the application
+│   └── main.go              # Main application logic
+├── internal/                # Core logic of the application
+│   ├── processinput/        # Audio input processing
+│   │   ├── microphone.go    # Microphone input handling
+│   │   └── tone.go          # Tone generation handling
+│   └── processoutput/       # Audio output processing
+│       └── output.go        # Output handling logic
+├── pkg/                     # Shared packages
+│   └── objects/             # Shared objects and channels
+│       └── objects.go       # Channels and pipeline references
+├── constants/               # Constants used throughout the application
+│   └── constants.go         # Constant definitions
+├── configs/                 # Configuration files (if needed)
+├── data/                    # Sample data (audio files, etc.)
+│   └── samples/             # Directory for sample audio files
+├── scripts/                 # Setup scripts (if needed)
+├── test/                    # Integration tests (if needed)
+├── go.mod                   # Go module file
+└── go.sum                   # Go module checksum file
+```
 
 
 ## Usage
