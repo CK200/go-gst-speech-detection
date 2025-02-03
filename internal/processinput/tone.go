@@ -131,7 +131,7 @@ func createPipeline(audioFilePath string) (*gst.Pipeline, error) {
 
 // RunToneGeneration starts the tone generation process using the specified audio file.
 func RunToneGeneration() {
-	audioFilePath := "data/file_example_MP3_5MG.mp3" // Default audio file path
+	audioFilePath := "data/ocean-breeze-beat-by-jtwayne-213318.mp3" // Default audio file path
 	if len(os.Args) > 1 {
 		audioFilePath = os.Args[1] // Override with command line argument if provided
 	}
