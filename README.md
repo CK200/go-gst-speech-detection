@@ -145,7 +145,7 @@ By leveraging FFT, the application can effectively analyze audio signals in real
 ## Project Structure
 
 ```
-my-go-project/
+go-gst-speech-detection/
 ├── cmd/                     # Entry point of the application
 │   └── main.go              # Main application logic
 ├── internal/                # Core logic of the application
